@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema 
+    ct:conformanceTargets="http://reference.niem.gov/niem/specification/naming-and-design-rules/3.0/#ExtensionSchemaDocument"
+    targetNamespace="http://example.com/CrashDriver/1.0/" version="1"
+    xmlns:exch="http://example.com/CrashDriver/1.0/"
+    xmlns:j="http://release.niem.gov/niem/domains/jxdm/5.1/"
+    xmlns:nc="http://release.niem.gov/niem/niem-core/3.0/"
+    xmlns:geo="http://release.niem.gov/niem/adapters/geospatial/3.0/"
+    xmlns:gml="http://www.opengis.net/gml/3.2"
+    xmlns:niem-xs="http://release.niem.gov/niem/proxy/xsd/3.0/" 
+    xmlns:structures="http://release.niem.gov/niem/structures/3.0/" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    xmlns:appinfo="http://release.niem.gov/niem/appinfo/3.0/" 
+    xmlns:ct="http://release.niem.gov/niem/conformanceTargets/3.0/" 
+    xmlns:term="http://release.niem.gov/niem/localTerminology/3.0/"
+    elementFormDefault="qualified"> 
+
+    <xs:annotation>
+        <xs:documentation>
+            yada yada yada
+        </xs:documentation>
+    </xs:annotation>
+    
+    <xs:import schemaLocation="../niem/domains/jxdm/5.1/jxdm.xsd" namespace="http://release.niem.gov/niem/domains/jxdm/5.1/"/>
+    <xs:import schemaLocation="../niem/niem-core/3.0/niem-core.xsd" namespace="http://release.niem.gov/niem/niem-core/3.0/"/>
+    <xs:import schemaLocation="../niem/adapters/geospatial/3.0/geospatial.xsd" namespace="http://release.niem.gov/niem/adapters/geospatial/3.0/"/>
+    <xs:import schemaLocation="../niem/proxy/xsd/3.0/xs.xsd" namespace="http://release.niem.gov/niem/proxy/xsd/3.0/"/>
+    <xs:import schemaLocation="../niem/structures/3.0/structures.xsd" namespace="http://release.niem.gov/niem/structures/3.0/"/>
+
+    <xs:element name="CrashDriverInfo" type="exch:CrashDriverInfoType">
+        <xs:annotation><xs:documentation>
+            yada yada yada
+        </xs:documentation></xs:annotation>
+    </xs:element>
+    <xs:complexType name="CrashDriverInfoType">
+        <xs:annotation><xs:documentation>
+            yada yada yada
+        </xs:documentation></xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="structures:ObjectType">
+                <xs:sequence>
+                    <xs:element ref="nc:Person"/>
+                    <xs:element ref="j:Crash"/>
+                    <xs:element ref="j:PersonChargeAssociation" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element ref="j:Charge" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element ref="j:JusticeMetadata" minOccurs="0"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:element name="LicenseAugmentation" type="exch:LicenseAugmentationType" substitutionGroup="j:DriverLicenseAugmentationPoint"/>
+    <xs:complexType name="LicenseAugmentationType">
+        <xs:complexContent>
+            <xs:extension base="structures:AugmentationType">
+                <xs:sequence>
+                    <xs:element ref="nc:ItemLengthMeasure"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <xs:element name="PersonFictionalCharacterIndicator" type="niem-xs:boolean" substitutionGroup="nc:PersonAugmentationPoint">
+        <xs:annotation><xs:documentation>
+            True if this person is a fictional character in a literary work.
+        </xs:documentation></xs:annotation>     
+    </xs:element>
+ 
+</xs:schema>
