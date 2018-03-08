@@ -1,0 +1,152 @@
+#############################################################################
+# Don't touch these...
+#############################################################################
+
+this_makefile := ${lastword ${MAKEFILE_LIST}}
+SHELL = @bash@ -o pipefail -o errexit -o nounset
+.SECONDARY:
+
+#############################################################################
+# things to set / override
+#############################################################################
+
+# PROGRAMS
+
+# autoconf
+MKDIR_P = @MKDIR_P@
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+SED = @SED@
+# local configure
+bash = @bash@
+chmod = @chmod@
+m4 = @m4@
+touch = @touch@
+# regular commands
+dot = dot
+xs_validate = xs-validate
+ajv = ajv
+
+# site stuff
+site_dir = @site_dir@
+
+temp_dir = tmp
+build_dir = ${temp_dir}/build
+tokens_dir = ${temp_dir}/tokens
+
+# build target files in the source directory.
+all_files = \
+  object-model/object-model.png \
+  object-model/object-model.dot \
+
+#############################################################################
+# validation targets
+# object model iepd files
+object_model_iepd_xml_catalog = object-model/object-model-iepd/niem/xml-catalog.xml
+validate_files = \
+  ${tokens_dir}/xsd-valid/${object_model_iepd_xml_catalog}/object-model/object-model.xml \
+
+# sample iepd files
+sample_iepd_xml_catalog = sample-iepd/base-xsd/xml-catalog.xml
+sample_iepd_files = \
+  sample-iepd/iep-samples/iep3.xml \
+  sample-iepd/iep-samples/iep2.xml \
+  sample-iepd/iep-samples/iep1.xml
+validate_files += ${sample_iepd_files:%=${tokens_dir}/xsd-valid/${sample_iepd_xml_catalog}/%}
+
+# json files
+always_valid_json_files = \
+  examples/array.json \
+  examples/number.json \
+  examples/true.json \
+  examples/string.json \
+  examples/null.json \
+  examples/object-model.json \
+  examples/object-empty.json \
+  examples/false.json
+validate_files += ${always_valid_json_files:%=${tokens_dir}/js-valid/always-valid/%}
+
+install_files_relative = \
+  json/guidance/object-model.png
+
+install_files = ${install_files_relative:%=${site_dir}/%}
+
+#############################################################################
+#HELP:Default target is "all". Targets include:
+.DEFAULT_GOAL = all
+
+.PHONY: all #    Build everything
+all: ${all_files}
+
+.PHONY: validate #    Validate conformance of files
+validate: ${validate_files}
+
+.PHONY: install #    Install files in site directory
+install: ${install_files}
+
+.PHONY: uninstall #    Remove all installed files from site directory
+uninstall:
+	${RM} ${install_files}
+
+.PHONY: clean #    clean build products
+clean:
+	${RM} -r ${temp_dir}
+	${RM} ${all_files}
+	find . -type f -name '.DS_Store' -delete
+	find . -type f -name '*~' -delete
+	find . -type f -name 'tmp.*' -delete
+
+.PHONY: distclean #    Clean all products
+distclean: clean
+
+#############################################################################
+# all: build
+
+%.png: %.dot
+	${dot} -Tpng -o$@ $<
+	${chmod} -f 444 $@
+
+%.dot: %.dot.m4 dot_macros.m4
+	${RM} $@
+	${m4} -P dot_macros.m4 $< > $@ || ( ${RM} $@ && false )
+	${chmod} -f 444 $@
+
+#############################################################################
+# validate
+
+# xsd
+
+catalog = ${object_model_iepd_xml_catalog}
+${tokens_dir}/xsd-valid/${catalog}/%.xml: %.xml ${catalog}
+	${xs_validate} --catalog=${catalog} $<
+	${MKDIR_P} ${dir $@}
+	${touch} $@
+
+catalog = ${sample_iepd_xml_catalog}
+${tokens_dir}/xsd-valid/${catalog}/%.xml: %.xml ${catalog}
+	${xs_validate} --catalog=${catalog} $<
+	${MKDIR_P} ${dir $@}
+	${touch} $@
+
+schema = json-schemas/always-valid.schema.json
+${tokens_dir}/js-valid/always-valid/%: % ${schema}
+	${ajv} -s ${schema} -d $<
+	${MKDIR_P} ${dir $@}
+	${touch} $@
+
+#############################################################################
+# install
+
+${site_dir}/json/guidance/object-model.png: object-model/object-model.png
+	${MKDIR_P} ${dir $@}
+	${INSTALL_DATA} $< $@
+
+#############################################################################
+# make help: this must be the last target
+
+.PHONY: help #    Print this help
+help:
+	@ ${SED} -e '/^\.PHONY:/s/^\.PHONY: *\([^ #]*\) *\#\( *\)\([^ ].*\)/\2\1: \3/p;/^[^#]*#HELP:/s/[^#]*#HELP:\(.*\)/\1/p;d' ${this_makefile}
+
+# don't put anything after this
