@@ -35,9 +35,12 @@ temp_dir = tmp
 build_dir = ${temp_dir}/build
 tokens_dir = ${temp_dir}/tokens
 
+#############################################################################
+# all files: build
 # build target files in the source directory.
 all_files = \
-  ${build_dir}/object-model/object-model.png
+  ${build_dir}/object-model/object-model.png \
+  ${build_dir}/object-model/object-model.side-by-side.txt \
 
 #############################################################################
 # validation targets
@@ -67,7 +70,8 @@ always_valid_json_files = \
 validate_files += ${always_valid_json_files:%=${tokens_dir}/js-valid/always-valid/%}
 
 install_files_relative = \
-  json/guidance/object-model.png
+  json/guidance/object-model.png \
+  json/guidance/object-model.merged.txt \
 
 install_files = ${install_files_relative:%=${site_dir}/%}
 
@@ -101,18 +105,27 @@ distclean: clean
 #############################################################################
 # all: build
 
+# copy in
 ${build_dir}/%: %
 	${MKDIR_P} ${dir $@}
 	${INSTALL_DATA} $< $@
 
+# PNG file from graphviz DOT file
 ${build_dir}/%.png: ${build_dir}/%.dot
 	${dot} -Tpng -o$@ $<
 	${chmod} -f 444 $@
 
+# Run M4 on DOT files
 ${build_dir}/%.dot: ${build_dir}/%.dot.m4 dot_macros.m4
 	${RM} $@
 	${m4} -P dot_macros.m4 $< > $@ || ( ${RM} $@ && false )
 	${chmod} -f 444 $@
+
+# Build single text file with side-by-side render of XML and JSON files
+${build_dir}/object-model/object-model.side-by-side.txt: object-model/object-model.xml object-model/object-model.json
+	${MKDIR_P} ${dir $@}
+	L=$$(( 2 + $$(awk -f object-model/get-length-of-longest-line.awk object-model/object-model.xml) )) \
+	&& lam -f -$$L.$$L $^ > $@ || ${RM} $@
 
 #############################################################################
 # validate
@@ -141,6 +154,10 @@ ${tokens_dir}/js-valid/always-valid/%: % ${schema}
 # install
 
 ${site_dir}/json/guidance/object-model.png: ${build_dir}/object-model/object-model.png
+	${MKDIR_P} ${dir $@}
+	${INSTALL_DATA} $< $@
+
+${site_dir}/json/guidance/object-model.merged.txt: ${build_dir}/object-model/object-model.side-by-side.txt
 	${MKDIR_P} ${dir $@}
 	${INSTALL_DATA} $< $@
 
