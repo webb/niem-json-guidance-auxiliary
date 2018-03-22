@@ -37,8 +37,7 @@ tokens_dir = ${temp_dir}/tokens
 
 # build target files in the source directory.
 all_files = \
-  object-model/object-model.png \
-  object-model/object-model.dot \
+  ${build_dir}/object-model/object-model.png
 
 #############################################################################
 # validation targets
@@ -92,7 +91,6 @@ uninstall:
 .PHONY: clean #    clean build products
 clean:
 	${RM} -r ${temp_dir}
-	${RM} ${all_files}
 	find . -type f -name '.DS_Store' -delete
 	find . -type f -name '*~' -delete
 	find . -type f -name 'tmp.*' -delete
@@ -103,11 +101,15 @@ distclean: clean
 #############################################################################
 # all: build
 
-%.png: %.dot
+${build_dir}/%: %
+	${MKDIR_P} ${dir $@}
+	${INSTALL_DATA} $< $@
+
+${build_dir}/%.png: ${build_dir}/%.dot
 	${dot} -Tpng -o$@ $<
 	${chmod} -f 444 $@
 
-%.dot: %.dot.m4 dot_macros.m4
+${build_dir}/%.dot: ${build_dir}/%.dot.m4 dot_macros.m4
 	${RM} $@
 	${m4} -P dot_macros.m4 $< > $@ || ( ${RM} $@ && false )
 	${chmod} -f 444 $@
@@ -138,7 +140,7 @@ ${tokens_dir}/js-valid/always-valid/%: % ${schema}
 #############################################################################
 # install
 
-${site_dir}/json/guidance/object-model.png: object-model/object-model.png
+${site_dir}/json/guidance/object-model.png: ${build_dir}/object-model/object-model.png
 	${MKDIR_P} ${dir $@}
 	${INSTALL_DATA} $< $@
 
