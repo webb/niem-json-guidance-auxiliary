@@ -59,6 +59,8 @@ validate_files += ${sample_iepd_files:%=${tokens_dir}/xsd-valid/${sample_iepd_xm
 
 # json files
 always_valid_json_files = \
+  object-model/object-model.json \
+  object-model/object-model.no-context.json \
   examples/array.json \
   examples/number.json \
   examples/true.json \
@@ -132,15 +134,13 @@ ${build_dir}/object-model/object-model.side-by-side.txt: object-model/object-mod
 
 # xsd
 
-catalog = ${object_model_iepd_xml_catalog}
-${tokens_dir}/xsd-valid/${catalog}/%.xml: %.xml ${catalog}
-	${xs_validate} --catalog=${catalog} $<
+${tokens_dir}/xsd-valid/${object_model_iepd_xml_catalog}/%.xml: %.xml ${object_model_iepd_xml_catalog}
+	${xs_validate} --catalog=${object_model_iepd_xml_catalog} $<
 	${MKDIR_P} ${dir $@}
 	${touch} $@
 
-catalog = ${sample_iepd_xml_catalog}
-${tokens_dir}/xsd-valid/${catalog}/%.xml: %.xml ${catalog}
-	${xs_validate} --catalog=${catalog} $<
+${tokens_dir}/xsd-valid/${sample_iepd_xml_catalog}/%.xml: %.xml ${sample_iepd_xml_catalog}
+	${xs_validate} --catalog=${sample_iepd_xml_catalog} $<
 	${MKDIR_P} ${dir $@}
 	${touch} $@
 
