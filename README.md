@@ -9,7 +9,7 @@ The NIEM JSON Guidance Auxiliary repository
 To install, execute the configure script, providing the source directory for the NIEM.github.io repo. For example:
 
 ```bash
-$ ./configure --with-site=../site
+$ ./configure --with-site-dir=../site
 ```
 
 # Updating this repo
