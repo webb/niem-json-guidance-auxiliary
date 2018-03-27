@@ -46,8 +46,10 @@ all_files = \
 # validation targets
 # object model iepd files
 object_model_iepd_xml_catalog = object-model/object-model-iepd/niem/xml-catalog.xml
+example_schema_json = examples/request/schema.json
 validate_files = \
   ${tokens_dir}/xsd-valid/${object_model_iepd_xml_catalog}/object-model/object-model.xml \
+  ${tokens_dir}/js-valid/${example_schema_json}/examples/request/instance.json \
 
 # sample iepd files
 sample_iepd_xml_catalog = sample-iepd/base-xsd/xml-catalog.xml
@@ -74,6 +76,8 @@ validate_files += ${always_valid_json_files:%=${tokens_dir}/js-valid/always-vali
 install_files_relative = \
   json/guidance/object-model.png \
   json/guidance/object-model.merged.txt \
+  json/json-schema/instance.json \
+  json/json-schema/schema.json \
 
 install_files = ${install_files_relative:%=${site_dir}/%}
 
@@ -150,6 +154,11 @@ ${tokens_dir}/js-valid/always-valid/%: % ${schema}
 	${MKDIR_P} ${dir $@}
 	${touch} $@
 
+${tokens_dir}/js-valid/${example_schema_json}/examples/request/instance.json: examples/request/instance.json ${example_schema_json}
+	${ajv} -s ${example_schema_json} -d $<
+	${MKDIR_P} ${dir $@}
+	${touch} $@
+
 #############################################################################
 # install
 
@@ -160,6 +169,11 @@ ${site_dir}/json/guidance/object-model.png: ${build_dir}/object-model/object-mod
 ${site_dir}/json/guidance/object-model.merged.txt: ${build_dir}/object-model/object-model.side-by-side.txt
 	${MKDIR_P} ${dir $@}
 	${INSTALL_DATA} $< $@
+
+${site_dir}/json/json-schema/%.json: examples/request/%.json
+	${MKDIR_P} ${dir $@}
+	${INSTALL_DATA} $< $@
+
 
 #############################################################################
 # make help: this must be the last target
