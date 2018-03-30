@@ -39,17 +39,29 @@ tokens_dir = ${temp_dir}/tokens
 # all files: build
 # build target files in the source directory.
 all_files = \
-  ${build_dir}/object-model/object-model.png \
-  ${build_dir}/object-model/object-model.side-by-side.txt \
+  ${build_dir}/examples/object-model/object-model.png \
+  ${build_dir}/examples/object-model/object-model.side-by-side.txt \
+  ${build_dir}/examples/crash/model.png \
 
 #############################################################################
 # validation targets
 # object model iepd files
-object_model_iepd_xml_catalog = object-model/object-model-iepd/niem/xml-catalog.xml
+object_model_iepd_xml_catalog = examples/object-model/object-model-iepd/niem/xml-catalog.xml
 example_schema_json = examples/request/schema.json
 validate_files = \
-  ${tokens_dir}/xsd-valid/${object_model_iepd_xml_catalog}/object-model/object-model.xml \
+  ${tokens_dir}/xsd-valid/${object_model_iepd_xml_catalog}/examples/object-model/object-model.xml \
   ${tokens_dir}/js-valid/${example_schema_json}/examples/request/instance.json \
+  ${tokens_dir}/xsd-valid/${example_crash_xml_catalog}/examples/crash/instance-xsi-type.xml \
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# example/crash
+example_crash_xml_catalog = examples/crash/niem/xml-catalog.xml
+example_crash_json_schema = examples/crash/schema.json
+validate_files += \
+  ${tokens_dir}/xsd-valid/${example_crash_xml_catalog}/examples/crash/instance-xsi-type.xml \
+  ${tokens_dir}/js-valid/always-valid/examples/crash/instance.json \
+  ${tokens_dir}/js-valid/always-valid/examples/crash/schema.json \
+  ${tokens_dir}/js-valid/${example_crash_json_schema}/examples/crash/instance.json \
 
 # sample iepd files
 sample_iepd_xml_catalog = sample-iepd/base-xsd/xml-catalog.xml
@@ -61,16 +73,17 @@ validate_files += ${sample_iepd_files:%=${tokens_dir}/xsd-valid/${sample_iepd_xm
 
 # json files
 always_valid_json_files = \
-  object-model/object-model.json \
-  object-model/object-model.no-context.json \
   examples/array.json \
-  examples/number.json \
-  examples/true.json \
-  examples/string.json \
+  examples/false.json \
   examples/null.json \
-  examples/object-model.json \
+  examples/number.json \
   examples/object-empty.json \
-  examples/false.json
+  examples/object-model.json \
+  examples/object-model/object-model.json \
+  examples/object-model/object-model.no-context.json \
+  examples/string.json \
+  examples/true.json \
+
 validate_files += ${always_valid_json_files:%=${tokens_dir}/js-valid/always-valid/%}
 
 install_files_relative = \
@@ -78,6 +91,10 @@ install_files_relative = \
   json/guidance/object-model.merged.txt \
   json/json-schema/instance.json \
   json/json-schema/schema.json \
+  json/tutorial/model.png \
+  json/tutorial/wantlist.xml \
+  json/tutorial/instance.json \
+  json/tutorial/schema.json \
 
 install_files = ${install_files_relative:%=${site_dir}/%}
 
@@ -119,19 +136,16 @@ ${build_dir}/%: %
 # PNG file from graphviz DOT file
 ${build_dir}/%.png: ${build_dir}/%.dot
 	${dot} -Tpng -o$@ $<
-	${chmod} -f 444 $@
 
 # Run M4 on DOT files
 ${build_dir}/%.dot: ${build_dir}/%.dot.m4 dot_macros.m4
-	${RM} $@
 	${m4} -P dot_macros.m4 $< > $@ || ( ${RM} $@ && false )
-	${chmod} -f 444 $@
 
 # Build single text file with side-by-side render of XML and JSON files
-${build_dir}/object-model/object-model.side-by-side.txt: object-model/object-model.xml object-model/object-model.json
+${build_dir}/examples/object-model/object-model.side-by-side.txt: examples/object-model/object-model.xml examples/object-model/object-model.json
 	${MKDIR_P} ${dir $@}
-	L=$$(( 2 + $$(awk -f object-model/get-length-of-longest-line.awk object-model/object-model.xml) )) \
-	&& lam -f -$$L.$$L $^ > $@ || ${RM} $@
+	L=$$(( 2 + $$(awk -f examples/object-model/get-length-of-longest-line.awk examples/object-model/object-model.xml) )) \
+	&& lam -f -$$L.$$L $^ > $@ || ( ${RM} $@ && false )
 
 #############################################################################
 # validate
@@ -148,9 +162,14 @@ ${tokens_dir}/xsd-valid/${sample_iepd_xml_catalog}/%.xml: %.xml ${sample_iepd_xm
 	${MKDIR_P} ${dir $@}
 	${touch} $@
 
-schema = json-schemas/always-valid.schema.json
-${tokens_dir}/js-valid/always-valid/%: % ${schema}
-	${ajv} -s ${schema} -d $<
+${tokens_dir}/xsd-valid/${example_crash_xml_catalog}/%.xml: %.xml ${example_crash_xml_catalog}
+	${xs_validate} --catalog=${example_crash_xml_catalog} $<
+	${MKDIR_P} ${dir $@}
+	${touch} $@
+
+is_json_schema = json-schemas/always-valid.schema.json
+${tokens_dir}/js-valid/always-valid/%: % ${is_json_schema}
+	${ajv} -s ${is_json_schema} -d $<
 	${MKDIR_P} ${dir $@}
 	${touch} $@
 
@@ -159,14 +178,19 @@ ${tokens_dir}/js-valid/${example_schema_json}/examples/request/instance.json: ex
 	${MKDIR_P} ${dir $@}
 	${touch} $@
 
+${tokens_dir}/js-valid/${example_crash_json_schema}/%.json: %.json ${example_crash_json_schema}
+	${ajv} -s ${example_crash_json_schema} -d $<
+	${MKDIR_P} ${dir $@}
+	${touch} $@
+
 #############################################################################
 # install
 
-${site_dir}/json/guidance/object-model.png: ${build_dir}/object-model/object-model.png
+${site_dir}/json/guidance/object-model.png: ${build_dir}/examples/object-model/object-model.png
 	${MKDIR_P} ${dir $@}
 	${INSTALL_DATA} $< $@
 
-${site_dir}/json/guidance/object-model.merged.txt: ${build_dir}/object-model/object-model.side-by-side.txt
+${site_dir}/json/guidance/object-model.merged.txt: ${build_dir}/examples/object-model/object-model.side-by-side.txt
 	${MKDIR_P} ${dir $@}
 	${INSTALL_DATA} $< $@
 
@@ -174,6 +198,17 @@ ${site_dir}/json/json-schema/%.json: examples/request/%.json
 	${MKDIR_P} ${dir $@}
 	${INSTALL_DATA} $< $@
 
+${site_dir}/json/tutorial/%: ${build_dir}/examples/crash/%
+	${MKDIR_P} ${dir $@}
+	${INSTALL_DATA} $< $@
+
+${site_dir}/json/tutorial/%: /examples/crash/%
+	${MKDIR_P} ${dir $@}
+	${INSTALL_DATA} $< $@
+
+${site_dir}/json/tutorial/wantlist.xml: ${build_dir}/examples/crash/niem/wantlist.xml
+	${MKDIR_P} ${dir $@}
+	${INSTALL_DATA} $< $@
 
 #############################################################################
 # make help: this must be the last target
