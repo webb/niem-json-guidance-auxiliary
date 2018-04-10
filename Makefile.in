@@ -27,6 +27,8 @@ touch = @touch@
 dot = dot
 xs_validate = xs-validate
 ajv = ajv
+# convert is an image converter from ImageMagick
+convert = convert
 
 # site stuff
 site_dir = @site_dir@
@@ -53,7 +55,7 @@ validate_files = \
   ${tokens_dir}/js-valid/${example_schema_json}/examples/request/instance.json \
   ${tokens_dir}/xsd-valid/${example_crash_xml_catalog}/examples/crash/instance-xsi-type.xml \
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # example/crash
 example_crash_xml_catalog = examples/crash/niem/xml-catalog.xml
 example_crash_json_schema = examples/crash/schema.json
@@ -63,6 +65,16 @@ validate_files += \
   ${tokens_dir}/js-valid/always-valid/examples/crash/schema.json \
   ${tokens_dir}/js-valid/${example_crash_json_schema}/examples/crash/instance.json \
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# graphics
+
+graphics_domains_png_source = graphics/domains/niem-4.0-release-domains.png
+build_graphics_domains_png_medium = ${graphics_domains_png_source:%.png=${build_dir}/%-medium.png}
+
+all_files += ${build_graphics_domains_png_medium}
+install_files_relative += json/whatis/niem-4.0-release-domains-medium.png
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # sample iepd files
 sample_iepd_xml_catalog = sample-iepd/base-xsd/xml-catalog.xml
 sample_iepd_files = \
@@ -86,7 +98,7 @@ always_valid_json_files = \
 
 validate_files += ${always_valid_json_files:%=${tokens_dir}/js-valid/always-valid/%}
 
-install_files_relative = \
+install_files_relative += \
   json/guidance/object-model.png \
   json/guidance/object-model.merged.txt \
   json/json-schema/instance.json \
@@ -207,6 +219,17 @@ ${site_dir}/json/tutorial/%: /examples/crash/%
 	${INSTALL_DATA} $< $@
 
 ${site_dir}/json/tutorial/wantlist.xml: ${build_dir}/examples/crash/niem/wantlist.xml
+	${MKDIR_P} ${dir $@}
+	${INSTALL_DATA} $< $@
+
+#############################################################################
+# graphics: build & install
+
+${build_graphics_domains_png_medium}: ${graphics_domains_png_source}
+	${MKDIR_P} ${dir $@}
+	${convert} $< -resize 400 $@
+
+${site_dir}/json/whatis/niem-4.0-release-domains-medium.png: ${build_graphics_domains_png_medium}
 	${MKDIR_P} ${dir $@}
 	${INSTALL_DATA} $< $@
 
