@@ -25,10 +25,12 @@ m4 = @m4@
 touch = @touch@
 # regular commands
 dot = dot
-xs_validate = xs-validate
-ajv = ajv
 # convert is an image converter from ImageMagick
 convert = convert
+# validation programs (validation is a phase that can be skipped)
+xs_validate = xs-validate
+ajv = ajv
+jq = jq
 
 # site stuff
 site_dir = @site_dir@
@@ -61,8 +63,8 @@ example_crash_xml_catalog = examples/crash/niem/xml-catalog.xml
 example_crash_json_schema = examples/crash/schema.json
 validate_files += \
   ${tokens_dir}/xsd-valid/${example_crash_xml_catalog}/examples/crash/instance-xsi-type.xml \
-  ${tokens_dir}/js-valid/always-valid/examples/crash/instance.json \
-  ${tokens_dir}/js-valid/always-valid/examples/crash/schema.json \
+  ${tokens_dir}/is-json/examples/crash/instance.json \
+  ${tokens_dir}/is-json/examples/crash/schema.json \
   ${tokens_dir}/js-valid/${example_crash_json_schema}/examples/crash/instance.json \
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -96,7 +98,7 @@ always_valid_json_files = \
   examples/string.json \
   examples/true.json \
 
-validate_files += ${always_valid_json_files:%=${tokens_dir}/js-valid/always-valid/%}
+validate_files += ${always_valid_json_files:%=${tokens_dir}/is-json/%}
 
 install_files_relative += \
   json/guidance/object-model.png \
@@ -179,9 +181,10 @@ ${tokens_dir}/xsd-valid/${example_crash_xml_catalog}/%.xml: %.xml ${example_cras
 	${MKDIR_P} ${dir $@}
 	${touch} $@
 
-is_json_schema = json-schemas/always-valid.schema.json
-${tokens_dir}/js-valid/always-valid/%: % ${is_json_schema}
-	${ajv} -s ${is_json_schema} -d $<
+# json
+
+${tokens_dir}/is-json/%: %
+	${jq} . $< > /dev/null
 	${MKDIR_P} ${dir $@}
 	${touch} $@
 
