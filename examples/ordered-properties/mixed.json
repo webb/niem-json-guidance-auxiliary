@@ -1,0 +1,11 @@
+{
+  "letter": [
+    "\n  Dear Mr. ",
+    { "name": "John Smith" },
+    ".\n  Your order ",
+    { "orderid": "1032" },
+    "\n  will be shipped on ",
+    { "shipdate": "2001-07-13" },
+    ".\n"
+  ]
+}

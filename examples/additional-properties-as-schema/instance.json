@@ -1,0 +1,7 @@
+{
+  "plane": {
+    "wings" : 2,
+    "passengers" : false,
+    "weight" : 137000
+  }
+}

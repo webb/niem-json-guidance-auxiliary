@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "plane": { "$ref": "#/definitions/planeType" }
+  },
+  "required" : [ "plane" ],
+
+  "definitions": {
+    "planeType" : {
+      "type" : "object",
+      "properties" : {
+        "wings": { "type": "number" }
+      },
+      "required" : [ "wings" ],
+      "additionalProperties": { "type": "number" }
+    },
+    "vehicleType" : {
+      "type" : "object",
+      "properties" : {
+        "passengers" : { "type" : "number" }
+      },
+      "required" : [ "passengers" ],
+      "additionalProperties" : { "$ref" : "#/definitions/itemType" }
+    },
+    "itemType" : {
+      "type" : "object",
+      "properties" : {
+        "weight" : { "type" : "number" }
+      },
+      "required" : [ "weight" ],
+      "additionalProperties" : false
+    }
+  }
+}
